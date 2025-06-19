@@ -5,11 +5,11 @@ const GAME_W = 720,
   GAME_H = 1280;
 
 /* global tweakables */
-const WORLD_GRAVITY = 600; // כללי – משפיע על כולם
-const COIN_GRAVITY = 900; // תאוצת נפילה למטבעות בלבד (px/s²)
-const PLAYER_SPEED = 250; // אופקי (px/s)
-const WORLD_FLOOR_PAD = 100; // כמה פיקסלים מעל תחתית הקנבס הרצפה הווירטואלית
-const MAX_LIVES = 3; // מספר החיים המקסימלי המוצג על המסך
+const WORLD_GRAVITY = 400; 
+const COIN_GRAVITY = 0; 
+const PLAYER_SPEED = 400; 
+const WORLD_FLOOR_PAD = 100; 
+const MAX_LIVES = 3; 
 
 const config = {
   type: Phaser.AUTO,
