@@ -28,7 +28,9 @@ You can use any other static HTTP server if preferred.
 
 ```
 /docs        # Game HTML, JS and assets
-/main.py     # Sample Python script (not used by the game)
+/LICENSE     # License information
+/README.md   # Project documentation
+/.gitignore  # Files ignored by git
 ```
 
 `docs/index.html` bootstraps Phaser and loads `main.js`, which contains all game logic.
