@@ -103,7 +103,7 @@ class BootScene extends Phaser.Scene {
     this.load.audio('bgMusic', 'assets/arcade-beat.ogg');
     this.load.audio('startSound', 'assets/Upper01.ogg');
     this.load.audio('levelUpSound', 'assets/arcade-level-completed.ogg');
-    this.load.audio('gameOverSound', 'assets/Downer.ogg');
+    this.load.audio('gameOverSound', 'assets/game_over_1.mp3');
     this.load.audio('penaltySound', 'assets/Downer.ogg');
     this.load.audio('coinSound', 'assets/Coin.ogg');
 
