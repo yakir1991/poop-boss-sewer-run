@@ -38,6 +38,7 @@ let dropTimer;
 let posScore = 0,
   scoreText;
 let lifeIcons = [];
+let lives = MAX_LIVES;
 
 /* -------- PRELOAD -------- */
 function preload() {
@@ -73,6 +74,11 @@ function preload() {
 /* ───────── CREATE ───────── */
 function create() {
   const { width, height } = this.scale;
+
+  // reset HUD state on scene start
+  lifeIcons = [];
+  lives = MAX_LIVES;
+  posScore = 0;
 
   /* world bounds – הרצפה 100px מעל תחתית, קירות מכל הצדדים */
   this.physics.world.setBounds(0, 0, width, height - WORLD_FLOOR_PAD);
@@ -186,6 +192,11 @@ function collectCoin(player, coin) {
   if (coin.texture.key === "coinPos") {
     posScore += 1;
     scoreText.setText("POS: " + posScore);
+  } else if (coin.texture.key === "coinPepe") {
+    if (lives > 0) {
+      lifeIcons[MAX_LIVES - lives].setVisible(false);
+      lives -= 1;
+    }
   }
   coin.destroy();
 }
