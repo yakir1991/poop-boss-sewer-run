@@ -10,6 +10,7 @@ const COIN_GRAVITY = 0;
 const PLAYER_SPEED = 400;
 const WORLD_FLOOR_PAD = 100;
 const MAX_LIVES = 3;
+const FLASH_PAUSE_MS = 1500;
 
 /* global variables */
 let player, cursors;
@@ -250,18 +251,24 @@ function showLevelUp(scene) {
     .image(width / 2, height / 2, 'levelUp')
     .setDepth(10);
   scene.time.addEvent({ delay: 1000, callback: () => banner.destroy() });
-  flashPlayer(scene, 'bossJump');
+  flashPlayer(scene, 'bossJump', FLASH_PAUSE_MS);
 }
 
 /* briefly play a temporary player animation */
-function flashPlayer(scene, key, duration = 300) {
+function flashPlayer(scene, key, duration = FLASH_PAUSE_MS) {
   const current = player.anims.currentAnim
     ? player.anims.currentAnim.key
     : 'idle';
   player.play(key, true);
+  scene.physics.pause();
+  if (dropTimer) dropTimer.paused = true;
   scene.time.addEvent({
     delay: duration,
-    callback: () => player.play(current, true),
+    callback: () => {
+      player.play(current, true);
+      scene.physics.resume();
+      if (dropTimer) dropTimer.paused = false;
+    },
   });
 }
 
@@ -297,7 +304,7 @@ function collectCoin(player, coin) {
       lifeIcons[MAX_LIVES - lives].setVisible(false);
       lives -= 1;
     }
-    flashPlayer(this, 'hurt');
+    flashPlayer(this, 'hurt', FLASH_PAUSE_MS);
   }
   coin.destroy();
 }
