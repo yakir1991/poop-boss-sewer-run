@@ -44,6 +44,14 @@ class BootScene extends Phaser.Scene {
       frameWidth: 96,
       frameHeight: 192,
     });
+    this.load.spritesheet('poopHurt', 'assets/poop_hurt.png', {
+      frameWidth: 96,
+      frameHeight: 192,
+    });
+    this.load.spritesheet('poopBossJump', 'assets/poop_boss_jump.png', {
+      frameWidth: 96,
+      frameHeight: 192,
+    });
 
     /* Airdrop God */
     this.load.spritesheet('airdrop', 'assets/airdrop_god.png', {
@@ -119,6 +127,18 @@ class GameScene extends Phaser.Scene {
       frames: this.anims.generateFrameNumbers('poopRight', { start: 0, end: 1 }),
       frameRate: 10,
       repeat: -1,
+    });
+    this.anims.create({
+      key: 'hurt',
+      frames: this.anims.generateFrameNumbers('poopHurt', { start: 0, end: 1 }),
+      frameRate: 10,
+      repeat: 0,
+    });
+    this.anims.create({
+      key: 'bossJump',
+      frames: this.anims.generateFrameNumbers('poopBossJump', { start: 0, end: 1 }),
+      frameRate: 10,
+      repeat: 0,
     });
 
     /* player – 300px above floor */
@@ -230,6 +250,19 @@ function showLevelUp(scene) {
     .image(width / 2, height / 2, 'levelUp')
     .setDepth(10);
   scene.time.addEvent({ delay: 1000, callback: () => banner.destroy() });
+  flashPlayer(scene, 'bossJump');
+}
+
+/* briefly play a temporary player animation */
+function flashPlayer(scene, key, duration = 300) {
+  const current = player.anims.currentAnim
+    ? player.anims.currentAnim.key
+    : 'idle';
+  player.play(key, true);
+  scene.time.addEvent({
+    delay: duration,
+    callback: () => player.play(current, true),
+  });
 }
 
 /* spawn a single coin */
@@ -264,6 +297,7 @@ function collectCoin(player, coin) {
       lifeIcons[MAX_LIVES - lives].setVisible(false);
       lives -= 1;
     }
+    flashPlayer(this, 'hurt');
   }
   coin.destroy();
 }
