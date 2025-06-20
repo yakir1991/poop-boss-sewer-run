@@ -19,6 +19,9 @@ let posScore = 0,
   scoreText;
 let lifeIcons = [];
 let lives = MAX_LIVES;
+let level = 1;
+let coinsPerDrop = 1;
+let coinExtraGravity = 0;
 
 class BootScene extends Phaser.Scene {
   constructor() {
@@ -52,6 +55,7 @@ class BootScene extends Phaser.Scene {
     this.load.image('coinPepe', 'assets/coin_pepe.png');
     this.load.image('coinPos', 'assets/coin_pos.png');
     this.load.image('life_icon', 'assets/life_icon.png');
+    this.load.image('levelUp', 'assets/levelup_banner.png');
 
     /* Screens */
     this.load.image('tapStart', 'assets/Tap_to_Start.png');
@@ -86,6 +90,9 @@ class GameScene extends Phaser.Scene {
     lifeIcons = [];
     lives = MAX_LIVES;
     posScore = 0;
+    level = 1;
+    coinsPerDrop = 1;
+    coinExtraGravity = 0;
 
     /* world bounds – floor 100px above bottom */
     this.physics.world.setBounds(0, 0, width, height - WORLD_FLOOR_PAD);
@@ -150,7 +157,7 @@ class GameScene extends Phaser.Scene {
     dropTimer = this.time.addEvent({
       delay: 1000,
       loop: true,
-      callback: () => dropCoin.call(this, god.x, god.y + 30),
+      callback: () => dropCoins.call(this, god.x, god.y + 30),
     });
 
     /* destroy coins leaving world bounds */
@@ -208,12 +215,29 @@ class GameOverScene extends Phaser.Scene {
   }
 }
 
+/* drop multiple coins based on current level */
+function dropCoins(x, y) {
+  const full = Math.floor(coinsPerDrop);
+  const extra = coinsPerDrop - full;
+  for (let i = 0; i < full; i++) dropCoin(x, y);
+  if (Math.random() < extra) dropCoin(x, y);
+}
+
+/* display level up banner */
+function showLevelUp(scene) {
+  const { width, height } = scene.scale;
+  const banner = scene.add
+    .image(width / 2, height / 2, 'levelUp')
+    .setDepth(10);
+  scene.time.addEvent({ delay: 1000, callback: () => banner.destroy() });
+}
+
 /* spawn a single coin */
 function dropCoin(x, y) {
   const key = Math.random() < 0.5 ? 'coinPepe' : 'coinPos';
   const coin = coins
     .create(x, y, key)
-    .setGravityY(COIN_GRAVITY)
+    .setGravityY(COIN_GRAVITY + coinExtraGravity)
     .setVelocity(Phaser.Math.Between(-80, 80), 0)
     .setBounce(0.3)
     .setCollideWorldBounds(false);
@@ -229,6 +253,12 @@ function collectCoin(player, coin) {
   if (coin.texture.key === 'coinPos') {
     posScore += 1;
     scoreText.setText('POS: ' + posScore);
+    if (posScore % 10 === 0) {
+      level += 1;
+      coinsPerDrop *= 1.1;
+      coinExtraGravity += 100;
+      showLevelUp(this);
+    }
   } else if (coin.texture.key === 'coinPepe') {
     if (lives > 0) {
       lifeIcons[MAX_LIVES - lives].setVisible(false);
