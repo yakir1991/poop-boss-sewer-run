@@ -321,11 +321,18 @@ class GameOverScene extends Phaser.Scene {
 function postScoreToTelegram(score) {
   try {
     const tg = window.Telegram && window.Telegram.WebApp;
+    console.debug('[GameOver] postScoreToTelegram called', {
+      score,
+      tgExists: !!tg,
+    });
     if (tg && typeof tg.postEvent === 'function') {
       tg.postEvent(`score:${score}`);
+      console.debug('[GameOver] score posted:', score);
+    } else {
+      console.debug('[GameOver] Telegram interface unavailable');
     }
   } catch (e) {
-    /* ignore errors when Telegram is unavailable */
+    console.error('[GameOver] failed posting score:', e);
   }
 }
 
