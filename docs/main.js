@@ -100,11 +100,12 @@ class BootScene extends Phaser.Scene {
     this.load.image('levelUp', 'assets/levelup_banner.png');
 
     /* Audio */
-    this.load.audio('bgMusic', 'assets/arcade-epic-beginning.ogg');
-    this.load.audio('startSound', 'assets/Upper01.aif');
+    this.load.audio('bgMusic', 'assets/arcade-beat.ogg');
+    this.load.audio('startSound', 'assets/Upper01.ogg');
     this.load.audio('levelUpSound', 'assets/arcade-level-completed.ogg');
-    this.load.audio('gameOverSound', 'assets/game_over_1.mp3');
-    this.load.audio('penaltySound', 'assets/Downer.aif');
+    this.load.audio('gameOverSound', 'assets/Downer.ogg');
+    this.load.audio('penaltySound', 'assets/Downer.ogg');
+    this.load.audio('coinSound', 'assets/Coin.ogg');
 
     /* HUD Icons */
     this.load.image('speakerIcon', 'assets/Speaker_Icons.png');
@@ -267,10 +268,14 @@ class GameScene extends Phaser.Scene {
     }
 
     /* HUD – speaker icon */
-    this.add
+    this.speaker = this.add
       .image(width - 20, 80, 'speakerIcon')
       .setOrigin(1, 0)
-      .setScale(0.6);
+      .setScale(0.6)
+      .setInteractive();
+    this.speaker.on('pointerdown', () => {
+      this.sound.mute = !this.sound.mute;
+    });
   }
   update() {
     if (this.physics.world.isPaused) return;
@@ -321,7 +326,12 @@ function showLevelUp(scene) {
     .image(width / 2, height / 2, 'levelUp')
     .setDepth(10);
   scene.time.addEvent({ delay: 1000, callback: () => banner.destroy() });
-  scene.sound.play('levelUpSound');
+  if (scene.bgMusic && scene.bgMusic.isPlaying) scene.bgMusic.pause();
+  const lvlSound = scene.sound.add('levelUpSound');
+  lvlSound.once('complete', () => {
+    if (scene.bgMusic) scene.bgMusic.resume();
+  });
+  lvlSound.play();
   flashPlayer(scene, 'bossJump', FLASH_PAUSE_MS);
   scene.time.delayedCall(FLASH_PAUSE_MS, () => showTaunt(scene));
 }
@@ -434,6 +444,7 @@ function collectCoin(player, coin) {
   if (coin.texture.key === 'coinPos') {
     posScore += 1;
     scoreText.setText('POS: ' + posScore);
+    this.sound.play('coinSound');
     if (posScore % 10 === 0) {
       level += 1;
       coinsPerDrop *= 1.1;
