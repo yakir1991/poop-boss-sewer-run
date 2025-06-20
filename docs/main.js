@@ -310,9 +310,22 @@ class GameOverScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
+    postScoreToTelegram(posScore);
     const toStart = () => this.scene.start('start');
     this.input.keyboard.once('keydown', toStart);
     this.input.once('pointerdown', toStart);
+  }
+}
+
+/* send score to Telegram WebApp if available */
+function postScoreToTelegram(score) {
+  try {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg && typeof tg.postEvent === 'function') {
+      tg.postEvent(`score:${score}`);
+    }
+  } catch (e) {
+    /* ignore errors when Telegram is unavailable */
   }
 }
 
