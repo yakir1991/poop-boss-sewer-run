@@ -10,7 +10,7 @@ const COIN_GRAVITY = 0;
 const PLAYER_SPEED = 400;
 const WORLD_FLOOR_PAD = 100;
 const MAX_LIVES = 3;
-const FLASH_PAUSE_MS = 1500;
+const FLASH_PAUSE_MS = 1000;
 
 /* global variables */
 let player, cursors;
@@ -206,6 +206,7 @@ class GameScene extends Phaser.Scene {
     }
   }
   update() {
+    if (this.physics.world.isPaused) return;
     if (cursors.left.isDown) {
       player.setVelocityX(-PLAYER_SPEED);
       if (player.anims.currentAnim.key !== 'left') player.play('left', true);
@@ -255,20 +256,32 @@ function showLevelUp(scene) {
 }
 
 /* briefly play a temporary player animation */
-function flashPlayer(scene, key, duration = FLASH_PAUSE_MS) {
+function flashPlayer(scene, key, minPause = FLASH_PAUSE_MS) {
   const current = player.anims.currentAnim
     ? player.anims.currentAnim.key
     : 'idle';
+
+  let animDone = false;
+  let timerDone = false;
+  const resume = () => {
+    if (!animDone || !timerDone) return;
+    player.play(current, true);
+    scene.physics.resume();
+    if (dropTimer) dropTimer.paused = false;
+  };
+
   player.play(key, true);
   scene.physics.pause();
   if (dropTimer) dropTimer.paused = true;
-  scene.time.addEvent({
-    delay: duration,
-    callback: () => {
-      player.play(current, true);
-      scene.physics.resume();
-      if (dropTimer) dropTimer.paused = false;
-    },
+
+  player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+    animDone = true;
+    resume();
+  });
+
+  scene.time.delayedCall(minPause, () => {
+    timerDone = true;
+    resume();
   });
 }
 
