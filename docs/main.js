@@ -277,18 +277,23 @@ class GameScene extends Phaser.Scene {
       this.sound.mute = !this.sound.mute;
     });
   }
-  update() {
-    if (this.physics.world.isPaused) return;
-    if (cursors.left.isDown) {
-      player.setVelocityX(-PLAYER_SPEED);
-      if (player.anims.currentAnim.key !== 'left') player.play('left', true);
-    } else if (cursors.right.isDown) {
-      player.setVelocityX(PLAYER_SPEED);
-      if (player.anims.currentAnim.key !== 'right') player.play('right', true);
-    } else {
-      player.setVelocityX(0);
-      if (player.anims.currentAnim.key !== 'idle') player.play('idle', true);
-    }
+    update() {
+      if (this.physics.world.isPaused) return;
+
+      const pointer = this.input.activePointer;
+      const pointerLeft = pointer.isDown && pointer.x < this.scale.width / 2;
+      const pointerRight = pointer.isDown && pointer.x >= this.scale.width / 2;
+
+      if (cursors.left.isDown || pointerLeft) {
+        player.setVelocityX(-PLAYER_SPEED);
+        if (player.anims.currentAnim.key !== 'left') player.play('left', true);
+      } else if (cursors.right.isDown || pointerRight) {
+        player.setVelocityX(PLAYER_SPEED);
+        if (player.anims.currentAnim.key !== 'right') player.play('right', true);
+      } else {
+        player.setVelocityX(0);
+        if (player.anims.currentAnim.key !== 'idle') player.play('idle', true);
+      }
 
     if (lives <= 0) {
       if (this.bgMusic) this.bgMusic.stop();
