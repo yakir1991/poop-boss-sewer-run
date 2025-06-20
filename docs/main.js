@@ -318,14 +318,14 @@ class GameOverScene extends Phaser.Scene {
   }
 }
 
-/* send score to Telegram WebApp if available */
+/* send score to Telegram WebApp using the sendData API if available */
 function postScoreToTelegram(scene, score) {
   try {
     const tg = window.Telegram && window.Telegram.WebApp;
     scene.debugHud.print('[GameOver] postScoreToTelegram called');
-    if (tg && typeof tg.postEvent === 'function') {
-      tg.postEvent(`score:${score}`);
-      scene.debugHud.print('[GameOver] score posted: ' + score);
+    if (tg && typeof tg.sendData === 'function') {
+      tg.sendData(JSON.stringify({ score }));
+      scene.debugHud.print('[GameOver] score sent: ' + score);
     } else {
       scene.debugHud.print('[GameOver] Telegram interface unavailable');
     }
@@ -509,3 +509,11 @@ const config = {
 };
 
 new Phaser.Game(config);
+
+// Inform Telegram WebApp that the game has initialized
+try {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg && typeof tg.ready === 'function') tg.ready();
+} catch (e) {
+  // ignore initialization errors
+}
