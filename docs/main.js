@@ -99,6 +99,16 @@ class BootScene extends Phaser.Scene {
     this.load.image('life_icon', 'assets/life_icon.png');
     this.load.image('levelUp', 'assets/levelup_banner.png');
 
+    /* Audio */
+    this.load.audio('bgMusic', 'assets/arcade-epic-beginning.ogg');
+    this.load.audio('startSound', 'assets/Upper01.aif');
+    this.load.audio('levelUpSound', 'assets/arcade-level-completed.ogg');
+    this.load.audio('gameOverSound', 'assets/game_over_1.mp3');
+    this.load.audio('penaltySound', 'assets/Downer.aif');
+
+    /* HUD Icons */
+    this.load.image('speakerIcon', 'assets/Speaker_Icons.png');
+
     /* Screens */
     this.load.image('tapStart', 'assets/Tap_to_Start.png');
     this.load.image('flushed', 'assets/You’ve_Been_Flushed.png');
@@ -120,7 +130,10 @@ class StartScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'tapStart');
-    const startGame = () => this.scene.start('game');
+    const startGame = () => {
+      this.sound.play('startSound');
+      this.scene.start('game');
+    };
     this.input.keyboard.once('keydown', startGame);
     this.input.once('pointerdown', startGame);
   }
@@ -140,6 +153,10 @@ class GameScene extends Phaser.Scene {
     level = 1;
     coinsPerDrop = 1;
     coinExtraGravity = 0;
+
+    /* background music */
+    this.bgMusic = this.sound.add('bgMusic', { loop: true });
+    this.bgMusic.play();
 
     /* world bounds – floor 100px above bottom */
     this.physics.world.setBounds(0, 0, width, height - WORLD_FLOOR_PAD);
@@ -248,6 +265,12 @@ class GameScene extends Phaser.Scene {
         .setScale(0.6);
       lifeIcons.push(icon);
     }
+
+    /* HUD – speaker icon */
+    this.add
+      .image(width - 20, 80, 'speakerIcon')
+      .setOrigin(1, 0)
+      .setScale(0.6);
   }
   update() {
     if (this.physics.world.isPaused) return;
@@ -263,6 +286,7 @@ class GameScene extends Phaser.Scene {
     }
 
     if (lives <= 0) {
+      if (this.bgMusic) this.bgMusic.stop();
       this.scene.start('gameOver');
     }
   }
@@ -275,6 +299,7 @@ class GameOverScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'flushed');
+    this.sound.play('gameOverSound');
     const toStart = () => this.scene.start('start');
     this.input.keyboard.once('keydown', toStart);
     this.input.once('pointerdown', toStart);
@@ -296,6 +321,7 @@ function showLevelUp(scene) {
     .image(width / 2, height / 2, 'levelUp')
     .setDepth(10);
   scene.time.addEvent({ delay: 1000, callback: () => banner.destroy() });
+  scene.sound.play('levelUpSound');
   flashPlayer(scene, 'bossJump', FLASH_PAUSE_MS);
   scene.time.delayedCall(FLASH_PAUSE_MS, () => showTaunt(scene));
 }
@@ -419,6 +445,7 @@ function collectCoin(player, coin) {
       lifeIcons[MAX_LIVES - lives].setVisible(false);
       lives -= 1;
     }
+    this.sound.play('penaltySound');
     flashPlayer(this, 'hurt', FLASH_PAUSE_MS);
   }
   coin.destroy();
