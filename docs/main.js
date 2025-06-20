@@ -310,41 +310,51 @@ function showTaunt(scene) {
   const pepe = scene.add
     .sprite(20, height - WORLD_FLOOR_PAD, 'pepeTaunt')
     .setOrigin(0, 1)
-    .play('taunt')
     .setDepth(11);
 
-  const bubble = scene.add
-    .image(pepe.x + pepe.displayWidth - 10, pepe.y - pepe.displayHeight + 10, 'speechBubble')
-    .setOrigin(0, 1)
-    .setDepth(11);
+  const showBubble = () => {
+    const bubble = scene.add
+      .image(
+        pepe.x + pepe.displayWidth - 10,
+        pepe.y - pepe.displayHeight + 10,
+        'speechBubble',
+      )
+      .setOrigin(0, 1)
+      .setDepth(11);
 
-  const text = scene.add
-    .text(bubble.x + 10, bubble.y - bubble.displayHeight + 10, '', {
-      font: '20px Impact',
-      fill: '#000',
-      wordWrap: { width: bubble.displayWidth - 20 },
-    })
-    .setDepth(12);
+    const text = scene.add
+      .text(bubble.x + bubble.displayWidth / 2, bubble.y - bubble.displayHeight / 2, '', {
+        font: '20px Impact',
+        fill: '#ffffff',
+        wordWrap: { width: bubble.displayWidth - 20 },
+        align: 'center',
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(12);
 
-  const words = msg.split(' ');
-  let index = 0;
-  const typeNext = () => {
-    text.setText(words.slice(0, index + 1).join(' '));
-    index += 1;
-    if (index < words.length) {
-      scene.time.delayedCall(150, typeNext);
-    } else {
-      scene.time.delayedCall(500, () => {
-        pepe.destroy();
-        bubble.destroy();
-        text.destroy();
-        scene.physics.resume();
-        if (dropTimer) dropTimer.paused = false;
-      });
-    }
+    const words = msg.split(' ');
+    let index = 0;
+    const typeNext = () => {
+      text.setText(words.slice(0, index + 1).join(' '));
+      index += 1;
+      if (index < words.length) {
+        scene.time.delayedCall(150, typeNext);
+      } else {
+        scene.time.delayedCall(500, () => {
+          pepe.destroy();
+          bubble.destroy();
+          text.destroy();
+          scene.physics.resume();
+          if (dropTimer) dropTimer.paused = false;
+        });
+      }
+    };
+
+    typeNext();
   };
 
-  typeNext();
+  pepe.play({ key: 'taunt', repeat: 0 });
+  pepe.once(Phaser.Animations.Events.ANIMATION_COMPLETE, showBubble);
 }
 
 /* briefly play a temporary player animation */
