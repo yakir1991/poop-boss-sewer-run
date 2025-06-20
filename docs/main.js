@@ -315,8 +315,8 @@ function showTaunt(scene) {
   const showBubble = () => {
       const bubble = scene.add
         .image(
-          pepe.x + pepe.displayWidth,
-          pepe.y - pepe.displayHeight,
+          pepe.x + pepe.displayWidth -100,
+          pepe.y - pepe.displayHeight +150,
           'speechBubble',
         )
       .setOrigin(0, 1)
@@ -338,7 +338,7 @@ function showTaunt(scene) {
       text.setText(words.slice(0, index + 1).join(' '));
       index += 1;
       if (index < words.length) {
-        scene.time.delayedCall(300, typeNext);
+        scene.time.delayedCall(600, typeNext);
       } else {
         scene.time.delayedCall(500, () => {
           pepe.destroy();
