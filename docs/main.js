@@ -1,4 +1,5 @@
 // main.js
+import DebugHudPlugin from './debugHud.js';
 
 /* ───────── CONFIG ───────── */
 const GAME_W = 720,
@@ -310,7 +311,7 @@ class GameOverScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
-    postScoreToTelegram(posScore);
+    postScoreToTelegram(this, posScore);
     const toStart = () => this.scene.start('start');
     this.input.keyboard.once('keydown', toStart);
     this.input.once('pointerdown', toStart);
@@ -318,21 +319,18 @@ class GameOverScene extends Phaser.Scene {
 }
 
 /* send score to Telegram WebApp if available */
-function postScoreToTelegram(score) {
+function postScoreToTelegram(scene, score) {
   try {
     const tg = window.Telegram && window.Telegram.WebApp;
-    console.debug('[GameOver] postScoreToTelegram called', {
-      score,
-      tgExists: !!tg,
-    });
+    scene.debugHud.print('[GameOver] postScoreToTelegram called');
     if (tg && typeof tg.postEvent === 'function') {
       tg.postEvent(`score:${score}`);
-      console.debug('[GameOver] score posted:', score);
+      scene.debugHud.print('[GameOver] score posted: ' + score);
     } else {
-      console.debug('[GameOver] Telegram interface unavailable');
+      scene.debugHud.print('[GameOver] Telegram interface unavailable');
     }
   } catch (e) {
-    console.error('[GameOver] failed posting score:', e);
+    scene.debugHud.print('[GameOver] failed posting score: ' + e);
   }
 }
 
@@ -501,6 +499,11 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: { gravity: { y: WORLD_GRAVITY }, debug: false },
+  },
+  plugins: {
+    scene: [
+      { key: 'debugHud', plugin: DebugHudPlugin, mapping: 'debugHud' },
+    ],
   },
   scene: [BootScene, StartScene, GameScene, GameOverScene],
 };
