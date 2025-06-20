@@ -12,6 +12,39 @@ const WORLD_FLOOR_PAD = 100;
 const MAX_LIVES = 3;
 const FLASH_PAUSE_MS = 1000;
 
+const TAUNTS = [
+  "$POS? Bro, even Clippy wouldn't invest.",
+  'Ran your contract through a linter—got depression.',
+  'Checked your Git—looks like ChatGPT did all the work.',
+  'Your liquidity pool is shallower than my D&D lore binder.',
+  'Launched your coin on testnet. It still failed.',
+  'Your holders chart looks like an exponential decay.',
+  "I tried debugging $POS... turns out the bug is the project.",
+  'The only bullish thing here is your ego.',
+  'Even my Tamagotchi had more users.',
+  "I graphed your volume... wait, where'd it go?",
+  'You forked a rug and made it worse. Impressive.',
+  'Your roadmap is just a loop to nowhere.',
+  'I simulated your launch—Excel crashed from embarrassment.',
+  "Nice coin. I've seen more stability in Jenga.",
+  'Your price action looks like a heartbeat... after death.',
+  'Even my mom rugged her investment faster.',
+  'Whitepaper reads like a school essay—zero sources, all vibes.',
+  'No offense, but your tokenomics cause actual nausea.',
+  "I'd airdrop your coin to myself just to delete it.",
+  "Heard you're on Layer-1... of disappointment.",
+  'Your token is like Pluto—used to matter, now irrelevant.',
+  'Your chart looks like the WiFi signal in my basement.',
+  'Your dev team ghosted harder than my World of Warcraft guild.',
+  'Even MySpace has more engagement than your Telegram.',
+  'I ran a regression on $POS—it predicted bankruptcy.',
+  "I wouldn't stake this if it was part of a math exam.",
+  'Your project is the reason I believe in simulations.',
+  'The market cap is imaginary. Just like your fans.',
+  "Congrats, you've reached Peak Exit Liquidity.",
+  'Not financial advice, but... uninstall Metamask.',
+];
+
 /* global variables */
 let player, cursors;
 let coins;
@@ -69,6 +102,11 @@ class BootScene extends Phaser.Scene {
     /* Screens */
     this.load.image('tapStart', 'assets/Tap_to_Start.png');
     this.load.image('flushed', 'assets/You’ve_Been_Flushed.png');
+    this.load.spritesheet('pepeTaunt', 'assets/pepe_taunt.png', {
+      frameWidth: 128,
+      frameHeight: 384,
+    });
+    this.load.image('speechBubble', 'assets/speech_bubble.png');
   }
   create() {
     this.scene.start('start');
@@ -140,6 +178,12 @@ class GameScene extends Phaser.Scene {
       frames: this.anims.generateFrameNumbers('poopBossJump', { start: 0, end: 1 }),
       frameRate: 10,
       repeat: 0,
+    });
+    this.anims.create({
+      key: 'taunt',
+      frames: this.anims.generateFrameNumbers('pepeTaunt', { start: 0, end: 2 }),
+      frameRate: 6,
+      repeat: -1,
     });
 
     /* player – 300px above floor */
@@ -253,6 +297,54 @@ function showLevelUp(scene) {
     .setDepth(10);
   scene.time.addEvent({ delay: 1000, callback: () => banner.destroy() });
   flashPlayer(scene, 'bossJump', FLASH_PAUSE_MS);
+  scene.time.delayedCall(FLASH_PAUSE_MS, () => showTaunt(scene));
+}
+
+function showTaunt(scene) {
+  const { width, height } = scene.scale;
+  const msg = Phaser.Utils.Array.GetRandom(TAUNTS).replace('$POS', posScore);
+
+  scene.physics.pause();
+  if (dropTimer) dropTimer.paused = true;
+
+  const pepe = scene.add
+    .sprite(20, height - WORLD_FLOOR_PAD, 'pepeTaunt')
+    .setOrigin(0, 1)
+    .play('taunt')
+    .setDepth(11);
+
+  const bubble = scene.add
+    .image(pepe.x + pepe.displayWidth - 10, pepe.y - pepe.displayHeight + 10, 'speechBubble')
+    .setOrigin(0, 1)
+    .setDepth(11);
+
+  const text = scene.add
+    .text(bubble.x + 10, bubble.y - bubble.displayHeight + 10, '', {
+      font: '20px Impact',
+      fill: '#000',
+      wordWrap: { width: bubble.displayWidth - 20 },
+    })
+    .setDepth(12);
+
+  const words = msg.split(' ');
+  let index = 0;
+  const typeNext = () => {
+    text.setText(words.slice(0, index + 1).join(' '));
+    index += 1;
+    if (index < words.length) {
+      scene.time.delayedCall(150, typeNext);
+    } else {
+      scene.time.delayedCall(500, () => {
+        pepe.destroy();
+        bubble.destroy();
+        text.destroy();
+        scene.physics.resume();
+        if (dropTimer) dropTimer.paused = false;
+      });
+    }
+  };
+
+  typeNext();
 }
 
 /* briefly play a temporary player animation */
