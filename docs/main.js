@@ -340,7 +340,7 @@ function showTaunt(scene) {
       if (index < words.length) {
         scene.time.delayedCall(600, typeNext);
       } else {
-        scene.time.delayedCall(500, () => {
+        scene.time.delayedCall(2000, () => {
           pepe.destroy();
           bubble.destroy();
           text.destroy();
