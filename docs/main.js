@@ -1,6 +1,14 @@
 // main.js
 import DebugHudPlugin from './debugHud.js';
 
+// Ensure the game runs inside Telegram WebApp
+const tg = window.Telegram && window.Telegram.WebApp;
+if (!tg || !tg.initData) {
+  alert('Please open this game in Telegram.');
+  throw new Error('Not in Telegram WebApp environment');
+}
+tg.ready();
+
 /* ───────── CONFIG ───────── */
 const GAME_W = 720,
   GAME_H = 1280;
@@ -311,7 +319,7 @@ class GameOverScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
-    postScoreToTelegram(this, posScore);
+    sendScoreToServer(posScore);
     this.time.delayedCall(1000, () => this.scene.start('leaderboard'));
   }
 }
@@ -353,51 +361,25 @@ class LeaderboardScene extends Phaser.Scene {
   }
 }
 
-/* send score to Telegram WebApp using the sendData API if available */
-function postScoreToTelegram(scene, score) {
+/* send score to the bot server using initData */
+function sendScoreToServer(score) {
   try {
     const webApp = window.Telegram && window.Telegram.WebApp;
-    scene.debugHud.print('[GameOver] postScoreToTelegram called');
-    if (webApp && typeof webApp.sendData === 'function') {
-      webApp.sendData(JSON.stringify({ score }));
-      scene.debugHud.print('[GameOver] score sent via WebApp: ' + score);
-    } else if (
-      window.TelegramGameProxy &&
-      typeof window.TelegramGameProxy.postEvent === 'function'
-    ) {
-      window.TelegramGameProxy.postEvent('score', score);
-      scene.debugHud.print('[GameOver] score sent via GameProxy: ' + score);
-    } else if (webApp && webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
-      const params = {
-        user_id: webApp.initDataUnsafe.user.id,
-        score,
-      };
-      if (webApp.initDataUnsafe.chat)
-        params.chat_id = webApp.initDataUnsafe.chat.id;
-      if (webApp.initDataUnsafe.inline_message_id)
-        params.inline_message_id = webApp.initDataUnsafe.inline_message_id;
-      fetch('/setscore', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      }).then(() =>
-        scene.debugHud.print('[GameOver] score sent via fallback API: ' + score)
-      );
-    } else {
-      scene.debugHud.print('[GameOver] Telegram interface unavailable');
-    }
+    if (!webApp?.initData) return;
+    fetch('/setscore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score, initData: webApp.initData }),
+    });
   } catch (e) {
-    scene.debugHud.print('[GameOver] failed posting score: ' + e);
+    // ignore network errors
   }
 }
 
 async function fetchHighScores() {
   const webApp = window.Telegram && window.Telegram.WebApp;
-  const userId = webApp?.initDataUnsafe?.user?.id;
-  const chatId = webApp?.initDataUnsafe?.chat?.id;
-  if (!userId) return [];
-  const params = new URLSearchParams({ user_id: userId });
-  if (chatId) params.append('chat_id', chatId);
+  if (!webApp?.initData) return [];
+  const params = new URLSearchParams({ initData: webApp.initData });
   const res = await fetch('/highscores?' + params.toString());
   const data = await res.json();
   return data.result || [];
@@ -578,18 +560,3 @@ const config = {
 };
 
 new Phaser.Game(config);
-
-// Inform Telegram host that the game has initialized
-try {
-  const webApp = window.Telegram && window.Telegram.WebApp;
-  if (webApp && typeof webApp.ready === 'function') {
-    webApp.ready();
-  } else if (
-    window.TelegramGameProxy &&
-    typeof window.TelegramGameProxy.gameReady === 'function'
-  ) {
-    window.TelegramGameProxy.gameReady();
-  }
-} catch (e) {
-  // ignore initialization errors
-}
