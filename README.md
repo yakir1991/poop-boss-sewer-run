@@ -57,33 +57,8 @@ markup = InlineKeyboardMarkup.from_button(button)
 bot.send_message(chat_id, "Open the game:", reply_markup=markup)
 ```
 
-After receiving the score data from `main.js`, call `setGameScore` as usual to update the leaderboard.
 
-If you also want the server to post the final score to a Telegram chat, set the
-`GROUP_CHAT_ID` environment variable when running `server.js`.
+## 🔧 WebApp score flow
 
-## Running `server.js`
-
-The provided `server.js` script can be used to serve `docs/` and forward scores
-to Telegram. It requires **Node.js 18** or newer. Before running it install the
-minimal dependencies:
-
-```bash
-npm install express node-fetch
-```
-
-Start the server with your bot token:
-
-```bash
-BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11 \
-  node server.js
-```
-
-`BOT_TOKEN` is mandatory. Set `GROUP_CHAT_ID` as well if you want the server to
-post scores to a specific chat:
-
-```bash
-GROUP_CHAT_ID="-1001234567890" BOT_TOKEN=<token> node server.js
-```
-
-The server listens on port `3000` by default.
+המשחק מדווח על הניקוד דרך הפונקציה `Telegram.WebApp.sendData()` ולא דרך בקשות HTTP.
+הבוט הכתוב בפייתון כבר יודע לקבל את הנתונים ולעדכן את לוח התוצאות באמצעות האירוע `web_app_data`.

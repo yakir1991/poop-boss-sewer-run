@@ -320,17 +320,7 @@ class GameOverScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
-    sendScoreToServer(posScore).then((result) => {
-      if (!result.ok) {
-        const msg = result.message || 'Failed to notify Telegram';
-        this.add
-          .text(width / 2, height - 80, msg, {
-            font: '24px Impact',
-            fill: '#ff0000',
-          })
-          .setOrigin(0.5);
-      }
-    });
+    sendScoreToTelegram(this, posScore);
     this.time.delayedCall(1500, () => this.scene.start('leaderboard'));
   }
 }
@@ -339,32 +329,19 @@ class LeaderboardScene extends Phaser.Scene {
   constructor() {
     super('leaderboard');
   }
-  async create() {
+  create() {
     const { width, height } = this.scale;
     this.add.text(width / 2, 100, 'Leaderboard', {
       font: '48px Impact',
       fill: '#ffffff',
     }).setOrigin(0.5);
 
-    try {
-      const scores = await fetchHighScores();
-      scores.slice(0, 10).forEach((entry, i) => {
-        const name = entry.user.username || entry.user.first_name;
-        this.add
-          .text(width / 2, 200 + i * 40, `${entry.position}. ${name}: ${entry.score}`, {
-            font: '32px Impact',
-            fill: '#ffffff',
-          })
-          .setOrigin(0.5);
-      });
-    } catch (e) {
-      this.add
-        .text(width / 2, height / 2, 'Failed to load leaderboard', {
-          font: '24px Impact',
-          fill: '#ff0000',
-        })
-        .setOrigin(0.5);
-    }
+    this.add
+      .text(width / 2, height / 2, 'Check Telegram for the leaderboard', {
+        font: '24px Impact',
+        fill: '#ffffff',
+      })
+      .setOrigin(0.5);
 
     const toStart = () => this.scene.start('start');
     this.input.keyboard.once('keydown', toStart);
@@ -372,33 +349,34 @@ class LeaderboardScene extends Phaser.Scene {
   }
 }
 
-/* send score to the bot server using initData */
-async function sendScoreToServer(score) {
+/* send score through Telegram WebApp */
+function sendScoreToTelegram(scene, score) {
   try {
     const webApp = window.Telegram && window.Telegram.WebApp;
-    if (!webApp?.initData) return { ok: false, message: 'initData missing' };
-    const res = await fetch('/setscore', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, initData: webApp.initData }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      return { ok: false, message: data.message };
+    if (webApp && typeof webApp.sendData === 'function') {
+      webApp.sendData(JSON.stringify({ score }));
+    } else {
+      scene.add
+        .text(scene.scale.width / 2, scene.scale.height - 80,
+          'Telegram interface unavailable – open inside the Telegram app.', {
+            font: '24px Impact',
+            fill: '#ff0000',
+            wordWrap: { width: scene.scale.width - 40 },
+            align: 'center',
+          })
+        .setOrigin(0.5);
     }
-    return { ok: true };
   } catch (e) {
-    return { ok: false, message: e.message };
+    scene.add
+      .text(scene.scale.width / 2, scene.scale.height - 80,
+        'Telegram interface unavailable – open inside the Telegram app.', {
+          font: '24px Impact',
+          fill: '#ff0000',
+          wordWrap: { width: scene.scale.width - 40 },
+          align: 'center',
+        })
+      .setOrigin(0.5);
   }
-}
-
-async function fetchHighScores() {
-  const webApp = window.Telegram && window.Telegram.WebApp;
-  if (!webApp?.initData) return [];
-  const params = new URLSearchParams({ initData: webApp.initData });
-  const res = await fetch('/highscores?' + params.toString());
-  const data = await res.json();
-  return data.result || [];
 }
 
 /* drop multiple coins based on current level */
