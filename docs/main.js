@@ -367,6 +367,22 @@ function postScoreToTelegram(scene, score) {
     ) {
       window.TelegramGameProxy.postEvent('score', score);
       scene.debugHud.print('[GameOver] score sent via GameProxy: ' + score);
+    } else if (webApp && webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
+      const params = {
+        user_id: webApp.initDataUnsafe.user.id,
+        score,
+      };
+      if (webApp.initDataUnsafe.chat)
+        params.chat_id = webApp.initDataUnsafe.chat.id;
+      if (webApp.initDataUnsafe.inline_message_id)
+        params.inline_message_id = webApp.initDataUnsafe.inline_message_id;
+      fetch('/setscore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      }).then(() =>
+        scene.debugHud.print('[GameOver] score sent via fallback API: ' + score)
+      );
     } else {
       scene.debugHud.print('[GameOver] Telegram interface unavailable');
     }
