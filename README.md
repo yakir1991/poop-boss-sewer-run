@@ -36,17 +36,25 @@ You can use any other static HTTP server if preferred.
 `docs/index.html` bootstraps Phaser and loads `main.js`, which contains all game logic.
 
 
-## Hosting Over HTTPS and Bot Registration
+## Hosting Over HTTPS and Bot Integration
 
-Hosting `docs/` on an HTTPS capable server is required for the Telegram gaming platform. One simple approach is GitHub Pages:
+Hosting `docs/` on an HTTPS capable server is required for the Telegram WebApp platform. One simple approach is GitHub Pages:
 
 1. Push this repository to GitHub.
 2. In the repository settings enable **GitHub Pages** and select `docs/` as the source.
 3. Once published the game will be available at an HTTPS URL such as `https://<user>.github.io/<repo>/`.
 
-Register that URL with your bot using @BotFather when creating the game. After the game has a `short_name` and URL you can interact with it via the Bot API:
+Register that URL with your bot using @BotFather. The game must be opened as a Telegram **WebApp**; the legacy `sendGame` flow is incompatible with the code in `docs/main.js`.
 
-- **sendGame** - share the game in chat so users can play: `https://api.telegram.org/bot<BOT_TOKEN>/sendGame`.
-- **setGameScore** - update a user's score after each run: `https://api.telegram.org/bot<BOT_TOKEN>/setGameScore`.
+Use an inline keyboard button to launch the WebApp. Example with **python-telegram-bot**:
 
-Players can open the game directly using the short link `t.me/<bot>?game=<short_name>`. Update your bot logic to call `sendGame` and `setGameScore` accordingly whenever the user's score changes.
+```python
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+
+url = "https://<user>.github.io/<repo>/"
+button = InlineKeyboardButton("Play Poop-Boss", web_app=WebAppInfo(url))
+markup = InlineKeyboardMarkup.from_button(button)
+bot.send_message(chat_id, "Open the game:", reply_markup=markup)
+```
+
+After receiving the score data from `main.js`, call `setGameScore` as usual to update the leaderboard.
