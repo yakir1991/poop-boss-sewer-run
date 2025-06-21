@@ -44,7 +44,7 @@ Hosting `docs/` on an HTTPS capable server is required for the Telegram WebApp p
 2. In the repository settings enable **GitHub Pages** and select `docs/` as the source.
 3. Once published the game will be available at an HTTPS URL such as `https://<user>.github.io/<repo>/`.
 
-Register that URL with your bot using @BotFather. The game must be opened as a Telegram **WebApp**; the legacy `sendGame` flow is incompatible with the code in `docs/main.js`.
+Register that URL with your bot using @BotFather. The game works best as a Telegram **WebApp**. A limited fallback for the legacy `sendGame` method is included, though the scoreboard is disabled in that mode.
 
 Use an inline keyboard button to launch the WebApp. Example with **python-telegram-bot**:
 
