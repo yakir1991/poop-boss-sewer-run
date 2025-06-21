@@ -321,11 +321,17 @@ class GameOverScene extends Phaser.Scene {
 /* send score to Telegram WebApp using the sendData API if available */
 function postScoreToTelegram(scene, score) {
   try {
-    const tg = window.Telegram && window.Telegram.WebApp;
+    const webApp = window.Telegram && window.Telegram.WebApp;
     scene.debugHud.print('[GameOver] postScoreToTelegram called');
-    if (tg && typeof tg.sendData === 'function') {
-      tg.sendData(JSON.stringify({ score }));
-      scene.debugHud.print('[GameOver] score sent: ' + score);
+    if (webApp && typeof webApp.sendData === 'function') {
+      webApp.sendData(JSON.stringify({ score }));
+      scene.debugHud.print('[GameOver] score sent via WebApp: ' + score);
+    } else if (
+      window.TelegramGameProxy &&
+      typeof window.TelegramGameProxy.postEvent === 'function'
+    ) {
+      window.TelegramGameProxy.postEvent('score', score);
+      scene.debugHud.print('[GameOver] score sent via GameProxy: ' + score);
     } else {
       scene.debugHud.print('[GameOver] Telegram interface unavailable');
     }
@@ -510,10 +516,17 @@ const config = {
 
 new Phaser.Game(config);
 
-// Inform Telegram WebApp that the game has initialized
+// Inform Telegram host that the game has initialized
 try {
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg && typeof tg.ready === 'function') tg.ready();
+  const webApp = window.Telegram && window.Telegram.WebApp;
+  if (webApp && typeof webApp.ready === 'function') {
+    webApp.ready();
+  } else if (
+    window.TelegramGameProxy &&
+    typeof window.TelegramGameProxy.gameReady === 'function'
+  ) {
+    window.TelegramGameProxy.gameReady();
+  }
 } catch (e) {
   // ignore initialization errors
 }
