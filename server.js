@@ -1,5 +1,6 @@
 const express = require('express');
 const fetch = require('node-fetch');
+const crypto = require('crypto');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 if (!BOT_TOKEN) {
@@ -11,17 +12,21 @@ const app = express();
 app.use(express.json());
 
 app.post('/setscore', async (req, res) => {
-  const { user_id, chat_id, inline_message_id, score } = req.body || {};
-  if (!user_id || score === undefined) {
-    return res.status(400).json({ error: 'user_id and score required' });
+  const { score, initData } = req.body || {};
+  if (score === undefined || !initData) {
+    return res.status(400).json({ error: 'initData and score required' });
+  }
+  const data = validateInitData(initData);
+  if (!data || !data.user) {
+    return res.status(400).json({ error: 'invalid initData' });
   }
   const params = {
-    user_id: Number(user_id),
+    user_id: data.user.id,
     score: Number(score),
     force: true,
   };
-  if (chat_id) params.chat_id = Number(chat_id);
-  if (inline_message_id) params.inline_message_id = inline_message_id;
+  if (data.chat) params.chat_id = data.chat.id;
+  if (data.inline_message_id) params.inline_message_id = data.inline_message_id;
   try {
     const result = await tgApi('setGameScore', params);
     res.json(result);
@@ -39,35 +44,33 @@ function tgApi(method, params) {
   }).then((r) => r.json());
 }
 
-app.post('/webhook', async (req, res) => {
-  const update = req.body;
-  if (update.message && update.message.web_app_data) {
-    try {
-      const data = JSON.parse(update.message.web_app_data.data || '{}');
-      if (data.score !== undefined) {
-        const params = {
-          user_id: update.message.from.id,
-          score: data.score,
-          force: true,
-        };
-        if (update.message.chat) params.chat_id = update.message.chat.id;
-        if (update.message.inline_message_id)
-          params.inline_message_id = update.message.inline_message_id;
-        await tgApi('setGameScore', params);
-      }
-    } catch (e) {
-      console.error('Failed handling webhook:', e);
-    }
-  }
-  res.sendStatus(200);
-});
+function validateInitData(initData) {
+  if (!initData) return null;
+  const params = new URLSearchParams(initData);
+  const hash = params.get('hash');
+  if (!hash) return null;
+  const dataCheck = [...params.entries()]
+    .filter(([k]) => k !== 'hash')
+    .map(([k, v]) => `${k}=${v}`)
+    .sort()
+    .join('\n');
+  const secret = crypto.createHash('sha256').update(BOT_TOKEN).digest();
+  const hmac = crypto.createHmac('sha256', secret).update(dataCheck).digest('hex');
+  if (hmac !== hash) return null;
+  const user = params.get('user') ? JSON.parse(params.get('user')) : null;
+  const chat = params.get('chat') ? JSON.parse(params.get('chat')) : null;
+  const inline_message_id = params.get('inline_message_id');
+  return { user, chat, inline_message_id };
+}
+
 
 app.get('/highscores', async (req, res) => {
-  const { user_id, chat_id, inline_message_id } = req.query;
-  if (!user_id) return res.status(400).json({ error: 'user_id required' });
-  const params = { user_id: Number(user_id) };
-  if (chat_id) params.chat_id = Number(chat_id);
-  if (inline_message_id) params.inline_message_id = inline_message_id;
+  const { initData } = req.query;
+  const data = validateInitData(initData);
+  if (!data || !data.user) return res.status(400).json({ error: 'invalid initData' });
+  const params = { user_id: data.user.id };
+  if (data.chat) params.chat_id = data.chat.id;
+  if (data.inline_message_id) params.inline_message_id = data.inline_message_id;
   try {
     const scores = await tgApi('getGameHighScores', params);
     res.json(scores);
