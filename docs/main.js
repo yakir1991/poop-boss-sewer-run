@@ -1,13 +1,14 @@
 // main.js
 import DebugHudPlugin from './debugHud.js';
 
-// Ensure the game runs inside Telegram WebApp
-const tg = window.Telegram && window.Telegram.WebApp;
-if (!tg || !tg.initData) {
+// Ensure the game runs inside Telegram
+const tgWebApp = window.Telegram && window.Telegram.WebApp;
+const tgGameProxy = window.TelegramGameProxy;
+if (!tgWebApp && !tgGameProxy) {
   alert('Please open this game in Telegram.');
-  throw new Error('Not in Telegram WebApp environment');
+  throw new Error('Not in Telegram environment');
 }
-tg.ready();
+if (tgWebApp) tgWebApp.ready();
 
 /* ───────── CONFIG ───────── */
 const GAME_W = 720,
