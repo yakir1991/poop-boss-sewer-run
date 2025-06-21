@@ -10,6 +10,8 @@ if (!tgWebApp && !tgGameProxy) {
 }
 if (tgWebApp) tgWebApp.ready();
 
+const SCORE_URL = new URLSearchParams(window.location.search).get('score_url') || '/game_score';
+
 /* ───────── CONFIG ───────── */
 const GAME_W = 720,
   GAME_H = 1280;
@@ -349,7 +351,14 @@ class LeaderboardScene extends Phaser.Scene {
   }
 }
 
-/* send score through Telegram WebApp */
+/*
+ * Send the final score back to the bot.
+ *
+ * If the game was launched as a Web App, we use `sendData` to submit the score
+ * via `web_app_data`. Otherwise (launched via `sendGame`), we post the score to
+ * the backend along with `TelegramGameProxy.initParams` so the bot can call
+ * `setGameScore`.
+ */
 function sendScoreToTelegram(scene, score) {
   const x = scene.scale.width / 2;
   const y = scene.scale.height - 80;
@@ -361,21 +370,35 @@ function sendScoreToTelegram(scene, score) {
       align: 'center',
     })
     .setOrigin(0.5);
-  try {
-    const webApp = window.Telegram && window.Telegram.WebApp;
-    if (webApp && typeof webApp.sendData === 'function') {
+
+  const webApp = window.Telegram && window.Telegram.WebApp;
+  if (webApp && typeof webApp.sendData === 'function') {
+    try {
       webApp.sendData(JSON.stringify({ score }));
       msg.setText('Score sent to Telegram successfully.');
-    } else {
-      msg
-        .setText('Failed to send score – Telegram interface unavailable.')
-        .setFill('#ff0000');
+      return;
+    } catch (e) {
+      msg.setText('Failed to send score – ' + e.message).setFill('#ff0000');
+      return;
     }
-  } catch (e) {
-    msg
-      .setText('Failed to send score – ' + e.message)
-      .setFill('#ff0000');
   }
+
+  const initParams = window.TelegramGameProxy
+    ? window.TelegramGameProxy.initParams
+    : {};
+
+  fetch(SCORE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ score, init_params: initParams }),
+  })
+    .then((r) => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      msg.setText('Score sent to Telegram successfully.');
+    })
+    .catch((e) => {
+      msg.setText('Failed to send score – ' + e.message).setFill('#ff0000');
+    });
 }
 
 /* drop multiple coins based on current level */
