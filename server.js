@@ -6,6 +6,10 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 if (!BOT_TOKEN) {
   console.error('BOT_TOKEN environment variable not set');
 }
+const GROUP_CHAT_ID = process.env.GROUP_CHAT_ID;
+if (!GROUP_CHAT_ID) {
+  console.log('GROUP_CHAT_ID not set; skipping Telegram notifications');
+}
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 const app = express();
@@ -29,9 +33,21 @@ app.post('/setscore', async (req, res) => {
   if (data.inline_message_id) params.inline_message_id = data.inline_message_id;
   try {
     const result = await tgApi('setGameScore', params);
+    if (!result.ok) throw new Error(result.description);
+
+    if (GROUP_CHAT_ID) {
+      const name = data.user.username || data.user.first_name;
+      const text = `${name} scored ${score} in Poop-Boss Sewer Run!`;
+      const msgRes = await tgApi('sendMessage', {
+        chat_id: GROUP_CHAT_ID,
+        text,
+      });
+      if (!msgRes.ok) throw new Error(msgRes.description);
+    }
+
     res.json(result);
   } catch (e) {
-    console.error('Failed setting score:', e);
+    console.error('Failed setting score or sending message:', e);
     res.status(500).json({ error: 'failed' });
   }
 });

@@ -323,7 +323,7 @@ class GameOverScene extends Phaser.Scene {
     sendScoreToServer(posScore).then((ok) => {
       if (!ok) {
         this.add
-          .text(width / 2, height - 80, 'Failed to submit score', {
+          .text(width / 2, height - 80, 'Failed to notify Telegram', {
             font: '24px Impact',
             fill: '#ff0000',
           })

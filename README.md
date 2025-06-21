@@ -58,3 +58,6 @@ bot.send_message(chat_id, "Open the game:", reply_markup=markup)
 ```
 
 After receiving the score data from `main.js`, call `setGameScore` as usual to update the leaderboard.
+
+If you also want the server to post the final score to a Telegram chat, set the
+`GROUP_CHAT_ID` environment variable when running `server.js`.
