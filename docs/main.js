@@ -351,31 +351,30 @@ class LeaderboardScene extends Phaser.Scene {
 
 /* send score through Telegram WebApp */
 function sendScoreToTelegram(scene, score) {
+  const x = scene.scale.width / 2;
+  const y = scene.scale.height - 80;
+  const msg = scene.add
+    .text(x, y, 'Sending score to Telegram…', {
+      font: '24px Impact',
+      fill: '#ffffff',
+      wordWrap: { width: scene.scale.width - 40 },
+      align: 'center',
+    })
+    .setOrigin(0.5);
   try {
     const webApp = window.Telegram && window.Telegram.WebApp;
     if (webApp && typeof webApp.sendData === 'function') {
       webApp.sendData(JSON.stringify({ score }));
+      msg.setText('Score sent to Telegram successfully.');
     } else {
-      scene.add
-        .text(scene.scale.width / 2, scene.scale.height - 80,
-          'Telegram interface unavailable – open inside the Telegram app.', {
-            font: '24px Impact',
-            fill: '#ff0000',
-            wordWrap: { width: scene.scale.width - 40 },
-            align: 'center',
-          })
-        .setOrigin(0.5);
+      msg
+        .setText('Failed to send score – Telegram interface unavailable.')
+        .setFill('#ff0000');
     }
   } catch (e) {
-    scene.add
-      .text(scene.scale.width / 2, scene.scale.height - 80,
-        'Telegram interface unavailable – open inside the Telegram app.', {
-          font: '24px Impact',
-          fill: '#ff0000',
-          wordWrap: { width: scene.scale.width - 40 },
-          align: 'center',
-        })
-      .setOrigin(0.5);
+    msg
+      .setText('Failed to send score – ' + e.message)
+      .setFill('#ff0000');
   }
 }
 
