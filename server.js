@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const BOT_TOKEN = process.env.BOT_TOKEN;
 if (!BOT_TOKEN) {
   console.error('BOT_TOKEN environment variable not set');
+  process.exit(1);
 }
 const GROUP_CHAT_ID = process.env.GROUP_CHAT_ID;
 if (!GROUP_CHAT_ID) {
