@@ -312,6 +312,41 @@ class GameOverScene extends Phaser.Scene {
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
     postScoreToTelegram(this, posScore);
+    this.time.delayedCall(1000, () => this.scene.start('leaderboard'));
+  }
+}
+
+class LeaderboardScene extends Phaser.Scene {
+  constructor() {
+    super('leaderboard');
+  }
+  async create() {
+    const { width, height } = this.scale;
+    this.add.text(width / 2, 100, 'Leaderboard', {
+      font: '48px Impact',
+      fill: '#ffffff',
+    }).setOrigin(0.5);
+
+    try {
+      const scores = await fetchHighScores();
+      scores.slice(0, 10).forEach((entry, i) => {
+        const name = entry.user.username || entry.user.first_name;
+        this.add
+          .text(width / 2, 200 + i * 40, `${entry.position}. ${name}: ${entry.score}`, {
+            font: '32px Impact',
+            fill: '#ffffff',
+          })
+          .setOrigin(0.5);
+      });
+    } catch (e) {
+      this.add
+        .text(width / 2, height / 2, 'Failed to load leaderboard', {
+          font: '24px Impact',
+          fill: '#ff0000',
+        })
+        .setOrigin(0.5);
+    }
+
     const toStart = () => this.scene.start('start');
     this.input.keyboard.once('keydown', toStart);
     this.input.once('pointerdown', toStart);
@@ -338,6 +373,18 @@ function postScoreToTelegram(scene, score) {
   } catch (e) {
     scene.debugHud.print('[GameOver] failed posting score: ' + e);
   }
+}
+
+async function fetchHighScores() {
+  const webApp = window.Telegram && window.Telegram.WebApp;
+  const userId = webApp?.initDataUnsafe?.user?.id;
+  const chatId = webApp?.initDataUnsafe?.chat?.id;
+  if (!userId) return [];
+  const params = new URLSearchParams({ user_id: userId });
+  if (chatId) params.append('chat_id', chatId);
+  const res = await fetch('/highscores?' + params.toString());
+  const data = await res.json();
+  return data.result || [];
 }
 
 /* drop multiple coins based on current level */
@@ -511,7 +558,7 @@ const config = {
       { key: 'debugHud', plugin: DebugHudPlugin, mapping: 'debugHud' },
     ],
   },
-  scene: [BootScene, StartScene, GameScene, GameOverScene],
+  scene: [BootScene, StartScene, GameScene, GameOverScene, LeaderboardScene],
 };
 
 new Phaser.Game(config);
