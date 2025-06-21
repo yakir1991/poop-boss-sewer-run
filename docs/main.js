@@ -320,10 +320,11 @@ class GameOverScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
-    sendScoreToServer(posScore).then((ok) => {
-      if (!ok) {
+    sendScoreToServer(posScore).then((result) => {
+      if (!result.ok) {
+        const msg = result.message || 'Failed to notify Telegram';
         this.add
-          .text(width / 2, height - 80, 'Failed to notify Telegram', {
+          .text(width / 2, height - 80, msg, {
             font: '24px Impact',
             fill: '#ff0000',
           })
@@ -375,15 +376,19 @@ class LeaderboardScene extends Phaser.Scene {
 async function sendScoreToServer(score) {
   try {
     const webApp = window.Telegram && window.Telegram.WebApp;
-    if (!webApp?.initData) return false;
+    if (!webApp?.initData) return { ok: false, message: 'initData missing' };
     const res = await fetch('/setscore', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ score, initData: webApp.initData }),
     });
-    return res.ok;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { ok: false, message: data.message };
+    }
+    return { ok: true };
   } catch (e) {
-    return false;
+    return { ok: false, message: e.message };
   }
 }
 
