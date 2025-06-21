@@ -320,8 +320,17 @@ class GameOverScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
-    sendScoreToServer(posScore);
-    this.time.delayedCall(1000, () => this.scene.start('leaderboard'));
+    sendScoreToServer(posScore).then((ok) => {
+      if (!ok) {
+        this.add
+          .text(width / 2, height - 80, 'Failed to submit score', {
+            font: '24px Impact',
+            fill: '#ff0000',
+          })
+          .setOrigin(0.5);
+      }
+    });
+    this.time.delayedCall(1500, () => this.scene.start('leaderboard'));
   }
 }
 
@@ -363,17 +372,18 @@ class LeaderboardScene extends Phaser.Scene {
 }
 
 /* send score to the bot server using initData */
-function sendScoreToServer(score) {
+async function sendScoreToServer(score) {
   try {
     const webApp = window.Telegram && window.Telegram.WebApp;
-    if (!webApp?.initData) return;
-    fetch('/setscore', {
+    if (!webApp?.initData) return false;
+    const res = await fetch('/setscore', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ score, initData: webApp.initData }),
     });
+    return res.ok;
   } catch (e) {
-    // ignore network errors
+    return false;
   }
 }
 
