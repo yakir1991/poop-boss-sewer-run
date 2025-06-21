@@ -10,6 +10,27 @@ const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const app = express();
 app.use(express.json());
 
+app.post('/setscore', async (req, res) => {
+  const { user_id, chat_id, inline_message_id, score } = req.body || {};
+  if (!user_id || score === undefined) {
+    return res.status(400).json({ error: 'user_id and score required' });
+  }
+  const params = {
+    user_id: Number(user_id),
+    score: Number(score),
+    force: true,
+  };
+  if (chat_id) params.chat_id = Number(chat_id);
+  if (inline_message_id) params.inline_message_id = inline_message_id;
+  try {
+    const result = await tgApi('setGameScore', params);
+    res.json(result);
+  } catch (e) {
+    console.error('Failed setting score:', e);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
 function tgApi(method, params) {
   return fetch(`${API_URL}/${method}`, {
     method: 'POST',
