@@ -5,25 +5,38 @@ const crypto = require('crypto');
 const BOT_TOKEN = process.env.BOT_TOKEN;
 if (!BOT_TOKEN) {
   console.error('BOT_TOKEN environment variable not set');
-  process.exit(1);
 }
 const GROUP_CHAT_ID = process.env.GROUP_CHAT_ID;
 if (!GROUP_CHAT_ID) {
   console.log('GROUP_CHAT_ID not set; skipping Telegram notifications');
 }
-const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
+const API_URL = BOT_TOKEN
+  ? `https://api.telegram.org/bot${BOT_TOKEN}`
+  : null;
 
 const app = express();
 app.use(express.json());
 
 app.post('/setscore', async (req, res) => {
   const { score, initData } = req.body || {};
+  if (!BOT_TOKEN) {
+    return res
+      .status(500)
+      .json({ error: 'bot_token_missing', message: 'BOT_TOKEN not set' });
+  }
   if (score === undefined || !initData) {
-    return res.status(400).json({ error: 'initData and score required' });
+    return res
+      .status(400)
+      .json({
+        error: 'missing_params',
+        message: 'initData and score required',
+      });
   }
   const data = validateInitData(initData);
   if (!data || !data.user) {
-    return res.status(400).json({ error: 'invalid initData' });
+    return res
+      .status(400)
+      .json({ error: 'invalid_initdata', message: 'Invalid initData' });
   }
   const params = {
     user_id: data.user.id,
@@ -49,7 +62,9 @@ app.post('/setscore', async (req, res) => {
     res.json(result);
   } catch (e) {
     console.error('Failed setting score or sending message:', e);
-    res.status(500).json({ error: 'failed' });
+    res
+      .status(500)
+      .json({ error: 'failed', message: e.message || 'Internal error' });
   }
 });
 
@@ -83,8 +98,16 @@ function validateInitData(initData) {
 
 app.get('/highscores', async (req, res) => {
   const { initData } = req.query;
+  if (!BOT_TOKEN) {
+    return res
+      .status(500)
+      .json({ error: 'bot_token_missing', message: 'BOT_TOKEN not set' });
+  }
   const data = validateInitData(initData);
-  if (!data || !data.user) return res.status(400).json({ error: 'invalid initData' });
+  if (!data || !data.user)
+    return res
+      .status(400)
+      .json({ error: 'invalid_initdata', message: 'Invalid initData' });
   const params = { user_id: data.user.id };
   if (data.chat) params.chat_id = data.chat.id;
   if (data.inline_message_id) params.inline_message_id = data.inline_message_id;
@@ -93,7 +116,9 @@ app.get('/highscores', async (req, res) => {
     res.json(scores);
   } catch (e) {
     console.error('Failed fetching highscores:', e);
-    res.status(500).json({ error: 'failed' });
+    res
+      .status(500)
+      .json({ error: 'failed', message: e.message || 'Internal error' });
   }
 });
 
