@@ -16,10 +16,10 @@ const WELCOME_NAME = tgUser ? tgUser.username || tgUser.id : null;
 /* ───────── SUPABASE CLIENT ───────── */
 const SB_URL = 'https://msdijjqgqbqqgjyrcwxm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zZGlqanFncWJxcWdqeXJjd3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NTA4MDIsImV4cCI6MjA2NjEyNjgwMn0.VKLQZjfJFmsbZPWIhx6J3yusgtKRLSiWjsO5GoBh_X8';
-const supabase = supabase.createClient(SB_URL, SB_KEY);
+const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
 
 async function saveScoreToDB(tgId, username, score) {
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from('scores')
     .insert({ tg_user_id: tgId, username, score });
   if (error) console.error('Supabase insert error:', error);
