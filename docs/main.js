@@ -13,6 +13,18 @@ tgWebApp.ready();
 const tgUser = tgWebApp.initDataUnsafe?.user;
 const WELCOME_NAME = tgUser ? tgUser.username || tgUser.id : null;
 
+/* ───────── SUPABASE CLIENT ───────── */
+const SB_URL = 'https://msdijjqgqbqqgjyrcwxm.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zZGlqanFncWJxcWdqeXJjd3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NTA4MDIsImV4cCI6MjA2NjEyNjgwMn0.VKLQZjfJFmsbZPWIhx6J3yusgtKRLSiWjsO5GoBh_X8';
+const supabase = supabase.createClient(SB_URL, SB_KEY);
+
+async function saveScoreToDB(tgId, username, score) {
+  const { error } = await supabase
+    .from('scores')
+    .insert({ tg_user_id: tgId, username, score });
+  if (error) console.error('Supabase insert error:', error);
+}
+
 /* ───────── CONFIG ───────── */
 const GAME_W = 720,
   GAME_H = 1280;
@@ -332,6 +344,8 @@ class GameOverScene extends Phaser.Scene {
     this.add.image(width / 2, height / 2, 'flushed');
     this.sound.play('gameOverSound');
     sendScoreToTelegram(this, posScore);
+    // Save to Supabase too
+    saveScoreToDB(tgUser?.id, WELCOME_NAME || 'unknown', posScore);
     this.time.delayedCall(1500, () => this.scene.start('leaderboard'));
   }
 }
