@@ -1,5 +1,6 @@
 // main.js
 import DebugHudPlugin from './debugHud.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 // Ensure the game runs inside Telegram WebApp
 const tgWebApp = window.Telegram && window.Telegram.WebApp;
@@ -16,7 +17,7 @@ const WELCOME_NAME = tgUser ? tgUser.username || tgUser.id : null;
 /* ───────── SUPABASE CLIENT ───────── */
 const SB_URL = 'https://msdijjqgqbqqgjyrcwxm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zZGlqanFncWJxcWdqeXJjd3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NTA4MDIsImV4cCI6MjA2NjEyNjgwMn0.VKLQZjfJFmsbZPWIhx6J3yusgtKRLSiWjsO5GoBh_X8';
-const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+const supabaseClient = createClient(SB_URL, SB_KEY);
 
 async function saveScoreToDB(tgId, username, score) {
   const { error } = await supabaseClient
