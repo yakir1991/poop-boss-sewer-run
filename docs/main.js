@@ -9,6 +9,10 @@ if (!tgWebApp) {
 }
 tgWebApp.ready();
 
+// Extract Telegram user data for greetings
+const tgUser = tgWebApp.initDataUnsafe?.user;
+const WELCOME_NAME = tgUser ? tgUser.username || tgUser.id : null;
+
 /* ───────── CONFIG ───────── */
 const GAME_W = 720,
   GAME_H = 1280;
@@ -140,6 +144,14 @@ class StartScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.add.image(width / 2, height / 2, 'tapStart');
+    if (WELCOME_NAME) {
+      this.add
+        .text(width / 2, height - 100, `Welcome ${WELCOME_NAME}!`, {
+          font: '32px Impact',
+          fill: '#ffffff',
+        })
+        .setOrigin(0.5);
+    }
     const startGame = () => {
       this.sound.play('startSound');
       this.scene.start('game');
