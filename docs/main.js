@@ -114,7 +114,7 @@ class BootScene extends Phaser.Scene {
     });
 
     /* Airdrop God */
-    this.load.spritesheet('airdrop', 'assets/poop_shit.png', {
+    this.load.spritesheet('airdrop', 'assets/poop_shiting.png', {
       frameWidth: 128,
       frameHeight: 128,
     });
