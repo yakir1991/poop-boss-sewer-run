@@ -39,36 +39,36 @@ const MAX_LIVES = 3;
 const FLASH_PAUSE_MS = 1000;
 
 const TAUNTS = [
-"POS? You’re not even worthy of being called a shitcoin.",
-"I linted your contract and the tool rage-quit.",
-"Looks like ChatGPT wrote it... and then disowned it.",
-"Your liquidity pool? Shallower than your IQ.",
-"Launched on testnet. Still managed to embarrass yourself.",
-"Your chart flatlined harder than your hopes.",
-"Tried debugging POS… turns out the bug is you.",
-"Only bullish thing here is your delusion.",
-"My Tamagotchi had more holders than your project.",
-"Zoomed into your volume… still saw nothing.",
-"You forked a rug and made it worse. Impressive failure.",
-"Your roadmap loops like your thought process: nowhere.",
-"Simulated your launch… even Excel tapped out.",
-"Nice coin. Jenga’s more stable.",
-"Your price action looks like post-mortem data.",
-"Even my mom rugged faster than you.",
-"Your whitepaper reads like fanfic for delusion.",
-"Your tokenomics made me physically ill.",
-"I’d airdrop your coin just so I could delete it.",
-"Layer-1? Bro, you’re Layer-0 of disappointment.",
-"You’re the Pluto of crypto—used to matter, now a meme.",
-"Your chart looks like my WiFi in a bunker.",
-"Your dev team ghosted harder than my ex-WoW guild.",
-"MySpace gets more engagement than your Telegram.",
-"Ran a regression on POS—output: total bankruptcy.",
-"I wouldn’t stake this if it was extra credit.",
-"Your project is proof the simulation hates us.",
-"Market cap? Imaginary. Like your fanbase.",
-"Congrats, you’re everyone’s exit liquidity.",
-"Not financial advice, but... uninstall Metamask immediately.",
+    "You call that a move? My grandma taps better.",
+    "Try again, loser. But with brain cells this time.",
+    "Did you mint that stupidity or was it airdropped?",
+    "Keep playing – you’re only embarrassing your whole lineage.",
+    "I’ve seen fart animations more coordinated than you.",
+    "Wow. That was almost impressive. Almost.",
+    "You slide like the dev’s liquidity – disappearing fast.",
+    "Hold up… are you playing with your forehead?",
+    "At this rate, even Pepe would feel bad for you.",
+    "Your reflexes called in sick today.",
+    "Don't worry, failure builds character. Not tokens though.",
+    "If you were any slower, you'd be a DAO decision.",
+    "Pro tip: Try using your fingers, not your feelings.",
+    "You're making me question free will.",
+    "Is that lag… or just your brain buffering?",
+    "Congrats! You unlocked: Level 0 shame.",
+    "That wasn’t gameplay – that was public humiliation.",
+    "Even the sewer rats are laughing at you.",
+    "Speed: -10 | Skill: non-existent | Vibes: tragic.",
+    "If sucking was a game, you’d be MVP.",
+    "The devs are rugging you personally at this point.",
+    "You're one swipe away from uninstalling.",
+    "Seriously? Did you pay to lose this bad?",
+    "I’d roast you harder, but the game already did.",
+    "That wasn’t a move – that was a cry for help.",
+    "I hope you backed up your dignity.",
+    "I’ve seen better gameplay in bot farms.",
+    "Still better than trading $POS. Barely.",
+    "Your score is like your IQ – dangerously low.",
+    "Game over. But your shame lives on.",
 ];
 
 /* global variables */
@@ -92,25 +92,25 @@ class BootScene extends Phaser.Scene {
     this.load.image('bg', 'assets/bg_sewer.png');
 
     /* Player sprite‑sheets */
-    this.load.spritesheet('poopIdle', 'assets/poop_idle.png', {
-      frameWidth: 96,
-      frameHeight: 192,
+    this.load.spritesheet('poopIdle', 'assets/player_idle.png', {
+      frameWidth: 95,
+      frameHeight: 100,
     });
-    this.load.spritesheet('poopLeft', 'assets/poop_run_left.png', {
-      frameWidth: 96,
-      frameHeight: 192,
+    this.load.spritesheet('poopLeft', 'assets/player_left.png', {
+      frameWidth: 95,
+      frameHeight: 100,
     });
-    this.load.spritesheet('poopRight', 'assets/poop_run_right.png', {
-      frameWidth: 96,
-      frameHeight: 192,
+    this.load.spritesheet('poopRight', 'assets/player_right.png', {
+      frameWidth: 95,
+      frameHeight: 100,
     });
-    this.load.spritesheet('poopHurt', 'assets/poop_hurt.png', {
-      frameWidth: 96,
-      frameHeight: 192,
+    this.load.spritesheet('poopHurt', 'assets/player_hurt.png', {
+      frameWidth: 95,
+      frameHeight: 109,
     });
-    this.load.spritesheet('poopBossJump', 'assets/poop_boss_jump.png', {
-      frameWidth: 96,
-      frameHeight: 192,
+    this.load.spritesheet('poopBossJump', 'assets/player_jump.png', {
+      frameWidth: 95,
+      frameHeight: 100,
     });
 
     /* Airdrop God */
@@ -139,9 +139,9 @@ class BootScene extends Phaser.Scene {
     /* Screens */
     this.load.image('tapStart', 'assets/Tap_to_Start.png');
     this.load.image('flushed', 'assets/You’ve_Been_Flushed.png');
-    this.load.spritesheet('pepeTaunt', 'assets/pepe_taunt.png', {
+    this.load.spritesheet('pepeTaunt', 'assets/poop_taunt.png', {
       frameWidth: 128,
-      frameHeight: 384,
+      frameHeight: 128,
     });
     this.load.image('speechBubble', 'assets/speech_bubble.png');
   }
@@ -203,19 +203,19 @@ class GameScene extends Phaser.Scene {
     /* player animations */
     this.anims.create({
       key: 'idle',
-      frames: this.anims.generateFrameNumbers('poopIdle', { start: 0, end: 1 }),
+      frames: this.anims.generateFrameNumbers('poopIdle', { start: 0, end: 2 }),
       frameRate: 4,
       repeat: -1,
     });
     this.anims.create({
       key: 'left',
-      frames: this.anims.generateFrameNumbers('poopLeft', { start: 0, end: 1 }),
+      frames: this.anims.generateFrameNumbers('poopLeft', { start: 0, end: 2 }),
       frameRate: 10,
       repeat: -1,
     });
     this.anims.create({
       key: 'right',
-      frames: this.anims.generateFrameNumbers('poopRight', { start: 0, end: 1 }),
+      frames: this.anims.generateFrameNumbers('poopRight', { start: 0, end: 2 }),
       frameRate: 10,
       repeat: -1,
     });
@@ -233,7 +233,7 @@ class GameScene extends Phaser.Scene {
     });
     this.anims.create({
       key: 'taunt',
-      frames: this.anims.generateFrameNumbers('pepeTaunt', { start: 0, end: 2 }),
+      frames: this.anims.generateFrameNumbers('pepeTaunt', { start: 0, end: 3 }),
       frameRate: 6,
       repeat: -1,
     });
