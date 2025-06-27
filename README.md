@@ -58,7 +58,4 @@ bot.send_message(chat_id, "Open the game:", reply_markup=markup)
 ```
 
 
-## 🔧 WebApp score flow
 
-המשחק מדווח על הניקוד דרך הפונקציה `Telegram.WebApp.sendData()` ולא דרך בקשות HTTP.
-הבוט הכתוב בפייתון כבר יודע לקבל את הנתונים ולעדכן את לוח התוצאות באמצעות האירוע `web_app_data`.
