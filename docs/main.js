@@ -247,7 +247,7 @@ class GameScene extends Phaser.Scene {
       .sprite(width / 2, height - WORLD_FLOOR_PAD - 300, 'poopIdle')
       .play('idle')
       .setCollideWorldBounds(true);
-    player.body.setOffset(0, 20);
+    player.body.setOffset(0, 35);
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -459,7 +459,7 @@ function showTaunt(scene) {
   if (dropTimer) dropTimer.paused = true;
 
   const pepe = scene.add
-    .sprite(20, height - WORLD_FLOOR_PAD - 20, 'pepeTaunt')
+    .sprite(20, height - WORLD_FLOOR_PAD, 'pepeTaunt')
     .setOrigin(0, 1)
     .setDepth(11);
 
@@ -467,7 +467,7 @@ function showTaunt(scene) {
       const bubble = scene.add
         .image(
           pepe.x + pepe.displayWidth - 100,
-          pepe.y - pepe.displayHeight + 120,
+          pepe.y - pepe.displayHeight + 100,
           'speechBubble',
         )
       .setOrigin(0, 1)
