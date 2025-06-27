@@ -118,6 +118,10 @@ class BootScene extends Phaser.Scene {
       frameWidth: 128,
       frameHeight: 128,
     });
+    this.load.spritesheet('airdropRight', 'assets/poop_shiting_right.PNG', {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
 
     /* Coins */
     this.load.image('coinPepe', 'assets/coin_pepe.png');
@@ -243,6 +247,7 @@ class GameScene extends Phaser.Scene {
       .sprite(width / 2, height - WORLD_FLOOR_PAD - 300, 'poopIdle')
       .play('idle')
       .setCollideWorldBounds(true);
+    player.body.setOffset(0, 20);
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -250,6 +255,12 @@ class GameScene extends Phaser.Scene {
     this.anims.create({
       key: 'godFly',
       frames: this.anims.generateFrameNumbers('airdrop', { start: 0, end: 3 }),
+      frameRate: 6,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: 'godFlyRight',
+      frames: this.anims.generateFrameNumbers('airdropRight', { start: 0, end: 3 }),
       frameRate: 6,
       repeat: -1,
     });
@@ -266,6 +277,14 @@ class GameScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
       yoyo: true,
       repeat: -1,
+      onYoyo: () => {
+        god.setTexture('airdropRight');
+        god.play('godFlyRight');
+      },
+      onRepeat: () => {
+        god.setTexture('airdrop');
+        god.play('godFly');
+      },
     });
 
     /* coins group */
@@ -440,15 +459,15 @@ function showTaunt(scene) {
   if (dropTimer) dropTimer.paused = true;
 
   const pepe = scene.add
-    .sprite(20, height - WORLD_FLOOR_PAD, 'pepeTaunt')
+    .sprite(20, height - WORLD_FLOOR_PAD - 20, 'pepeTaunt')
     .setOrigin(0, 1)
     .setDepth(11);
 
   const showBubble = () => {
       const bubble = scene.add
         .image(
-          pepe.x + pepe.displayWidth -100,
-          pepe.y - pepe.displayHeight +150,
+          pepe.x + pepe.displayWidth - 100,
+          pepe.y - pepe.displayHeight + 120,
           'speechBubble',
         )
       .setOrigin(0, 1)
